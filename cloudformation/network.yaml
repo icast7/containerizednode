@@ -1,20 +1,41 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: ALB path based routing
 
+Parameters:
+  Vpc:
+    Type: AWS::EC2::VPC::Id
+  Subnet1:
+    Type: AWS::EC2::Subnet::Id
+  Subnet2:
+    Type: AWS::EC2::Subnet::Id
 Resources:
+  AppLoadBalancerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: aaa
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3000
+          ToPort: 3000
+          CidrIp: 0.0.0.0/0
+
   AppLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: AppLoadBalancer
+      Scheme: internal
       Subnets:
+        - !Ref Subnet1
+        - !Ref Subnet2
       SecurityGroups:
-        - !Ref SecurityGroup
+        - !Ref AppLoadBalancerSecurityGroup
       Tags:
         - Key: Name
           Value: AppLoadBalancer
 
   AppLoadBalancerListener:
-    Type: AWS::ElasticLoadBalancerV2::Listener
+    Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
       LoadBalancerArn: !Ref AppLoadBalancer
       Port: 80
@@ -24,10 +45,12 @@ Resources:
           TargetGroupArn: !Ref DefaultTargetGroup
 
   DefaultTargetGroup:
-    Name: default
-    VpcId: !Ref VPC
-    Port: 80
-    Protocol: HTTP
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: default
+      VpcId: !Ref Vpc
+      Port: 80
+      Protocol: HTTP
 
   Cluster:
     Type: AWS::ECS::Cluster
