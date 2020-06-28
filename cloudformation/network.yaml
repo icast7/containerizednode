@@ -28,3 +28,8 @@ Resources:
     VpcId: !Ref VPC
     Port: 80
     Protocol: HTTP
+
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: HelloWorldCluster
